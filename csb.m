@@ -8,7 +8,10 @@ function [bic,cost,score,history]=csb(nPop,data,lamda,miu,omega)
     ShowIterInfo =1;
     c2bT = 0.5;
     %% Change this if you want to get better results
-    N_IterTotal=200;
+    N_IterTotal=300;
+    early_stopping_cnt = 0;
+    early_stopping_maxcnt = 30;
+    early_stopping_threshold = 1.0*10^-4;
     costFun = @calc_fit4;
     %% Simple bounds of the search domain
     % Lower bounds
@@ -39,6 +42,13 @@ function [bic,cost,score,history]=csb(nPop,data,lamda,miu,omega)
         % Evaluate this set of solutions
           [fnew,best,nest,fitness]=get_best_nest(nest,new_nest,fitness,data,lamda,miu,omega,c2bT,costFun);
 
+        % early stopping
+        change = fmin - fnew;
+        if change < early_stopping_threshold
+            early_stopping_cnt = early_stopping_cnt + 1;
+        else
+            early_stopping_cnt = 0;
+        end
         % Find the best objective so far  
         if fnew<fmin
             fmin=fnew;
@@ -49,7 +59,17 @@ function [bic,cost,score,history]=csb(nPop,data,lamda,miu,omega)
             disp(['Iteration ' num2str(iter) ': Best Cost = ' num2str(fmin)]);
         end
 
+        if early_stopping_cnt > early_stopping_maxcnt
+            disp('csb early stoping');
+            break
+        end
+
     end %% End of iterations
+    if iter < N_IterTotal
+        for i =iter:N_IterTotal
+            history(i) = fmin;
+        end
+    end
     cost = fmin;
     bic = conti2bit(bestnest,c2bT);
     score = calc_bench(bic,data);

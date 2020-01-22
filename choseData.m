@@ -1,25 +1,23 @@
 function data = choseData(data)
     if data == 1
-        disp('import data: leukemia_big.csv')
-        file = importdata('../data/leukemia_big.csv');
-        data = file.data; %size 7128x72
+        disp('import data: gse2403_BCLL.csv')
+        file = importdata('../data/gse2403_BCLL.csv');
+        data = file.data; %size 18125x21
     
     elseif data==2
-        disp('import data: yeast.matrix.txt')
-        data = importdata('../data/yeast.matrix.txt');%size 2884x17
+        disp('import data: gds2350_YC.csv')
+        file = importdata('../data/gds2350_YC.csv');
+        data = file.data; %size 5847x50
                 
     elseif data == 3
-        disp('import data: DLBCL.txt')
-        data = importdata('../data/DLBCL.txt'); %size  12625x21
+        disp('import data: gse952_RAT.csv')
+        file = importdata('../data/gse952_RAT.csv');
+        data = file.data; %size 7751x122
         
     elseif data==4
-        disp('import data: breast_Matlab.txt')
-        data = importdata('../data/breast_Matlab.txt'); %size 13666x117
-
-    elseif data == 5
-        disp('import data: ratStrain.txt')
-        data = importdata('../data/ratStrain.txt'); %size  8799x122        
-    end
-
+        disp('import data: gse2034_PBC.csv')
+        file = importdata('../data/gse2034_PBC.csv');
+        data = file.data; %size 21225x286
     
+    end
 end

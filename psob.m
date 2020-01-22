@@ -1,4 +1,4 @@
-function [bic,cost,score,history] = psob(nPop,data,lamda,miu)
+function [bic,cost,score,history] = psob(nPop,data,lamda,miu,omega)
 %   data    n*m
 %   lamda   the weight of gene Volume
 %   miu     the weight of condition Volume
@@ -13,10 +13,13 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu)
     VarMin = 0;	        % Lower Bound of Decision Variables
     VarMax = 1;         % Upper Bound of Decision Variables
     c2bT = 0.5;         % decide 0 or 1 threshold
-    costFun = @calc_fit3;
+    costFun = @calc_fit4;
     %% Parameters of PSO
 
-    MaxIt = 200;   % Maximum Number of Iterations
+    MaxIt = 300;   % Maximum Number of Iterations
+    early_stopping_cnt = 0;
+    early_stopping_maxcnt = 30;
+    early_stopping_threshold = 1.0*10^-4;
 
     % nPop = 20;     % Population Size (Swarm Size)
 
@@ -57,7 +60,7 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu)
 
         % Evaluation
         bic = conti2bit(particle(i).Position,c2bT);
-        particle(i).Cost = costFun(bic,data,lamda,miu);
+        particle(i).Cost = costFun(bic,data,lamda,miu,omega);
 
         % Update the Personal Best
         particle(i).Best.Position = particle(i).Position;
@@ -72,9 +75,16 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu)
     history = zeros(MaxIt, 1);
 
 
+    GBestCostOld = GlobalBest.Cost;
 %% Main Loop of PSO
 
     for it=1:MaxIt
+        % GBestCostOld = inf;
+        % for i=1:nPop
+        %     if particle(i).Best.Cost < GBestCostOld 
+        %         GBestCostOld = particle(i).Best.Cost;
+        %     end
+        % end
 
         for i=1:nPop
 
@@ -96,7 +106,7 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu)
 
             % Evaluation
             bic = conti2bit(particle(i).Position,c2bT);
-            particle(i).Cost = costFun(bic,data,lamda,miu);
+            particle(i).Cost = costFun(bic,data,lamda,miu,omega);
 
             % Update Personal Best
             if particle(i).Cost < particle(i).Best.Cost
@@ -112,8 +122,16 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu)
             end
         end
 
+        % early stopping
+        change =  GBestCostOld - GlobalBest.Cost;
+        if change < early_stopping_threshold
+            early_stopping_cnt = early_stopping_cnt + 1;
+        else
+            early_stopping_cnt = 0;
+        end
         % Store the Best Cost Value
         history(it) = GlobalBest.Cost;
+        GBestCostOld = GlobalBest.Cost;
 
         % Display Iteration Information
         if ShowIterInfo
@@ -122,8 +140,17 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu)
 
         % Damping Inertia Coefficient
         w = w * wdamp;
-    end
+        if early_stopping_cnt > early_stopping_maxcnt
+            disp('psob early stoping');
+            break
+        end
+    end % end of iteration
     
+    if it < MaxIt
+        for i =it:MaxIt
+            history(i) = GlobalBest.Cost;
+        end
+    end
     bic = conti2bit(GlobalBest.Position,c2bT);
     cost = GlobalBest.Cost;
     % pop = particle;

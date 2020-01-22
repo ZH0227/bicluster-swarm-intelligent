@@ -9,7 +9,10 @@ function [bic,cost,score,history]=csfa(nPop,data,lamda,miu,omega)
     ShowIterInfo =1;
     c2bT = 0.5;
     %% Change this if you want to get better results
-    N_IterTotal=200;
+    N_IterTotal=300;
+    early_stopping_cnt = 0;
+    early_stopping_maxcnt = 30;
+    early_stopping_threshold = 1.0*10^-4;
     costFun = @calc_fit4;
     %% Simple bounds of the search domain
     % Lower bounds
@@ -28,7 +31,9 @@ function [bic,cost,score,history]=csfa(nPop,data,lamda,miu,omega)
     [fmin,best,fa,fitness]=get_best_nest(nest,nest,fitness,data,lamda,miu,omega,c2bT,costFun);
     history = zeros(N_IterTotal,1);
 
+    fmin_old = min(fitness);
     for i =1:N_IterTotal
+        % [fmin_old,~,~,~]=get_best_nest(nest,nest,fitness,data,lamda,miu,omega,c2bT,costFun);
         [nest,fitnessC,bestC,minC]=cs_iter(fa,fitness,Lb,Ub,pa,data,lamda,miu,omega,c2bT,costFun);
         [fa,fitness,bestF,minF]=fa_iter(nest,fitnessC,Lb,Ub,data,lamda,miu,omega,c2bT,costFun,N_IterTotal,alpha);
 
@@ -42,9 +47,28 @@ function [bic,cost,score,history]=csfa(nPop,data,lamda,miu,omega)
             fmin = minF;
             best = bestF;
         end
+
+        % early stopping
+        change = fmin_old - fmin;
+        if change < early_stopping_threshold
+            early_stopping_cnt = early_stopping_cnt + 1;
+        else
+            early_stopping_cnt = 0;
+        end
+        fmin_old = fmin;
+
         history(i) = fmin;
         if ShowIterInfo
             disp(['Iteration ' num2str(i) ': Best Cost = ' num2str(fmin)]);
+        end
+        if early_stopping_cnt > early_stopping_maxcnt
+            disp('csfab early stoping');
+            break
+        end
+    end % end of iteration
+    if i < N_IterTotal
+        for k =i:N_IterTotal
+            history(k) = fmin;
         end
     end
     bic = conti2bit(best,c2bT);

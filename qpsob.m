@@ -1,4 +1,4 @@
-function [bic,cost,score,history] = qpsob(nPop,data,lamda,miu)
+function [bic,cost,score,history] = qpsob(nPop,data,lamda,miu,omega)
 
 % INPUT:
 %   data    n*m
@@ -23,7 +23,10 @@ ShowIterInfo =1;
 
 %% Parameters of QPSO
 
-maxit = 200;          % Maximum Number of Iterations
+maxit = 300;          % Maximum Number of Iterations
+early_stopping_cnt = 0;
+early_stopping_maxcnt = 30;
+early_stopping_threshold = 1.0*10^-4;
 % nPop = 20;            % Population Size (Swarm Size)
 w1 = 0.5;
 w2 = 1.0;
@@ -38,14 +41,14 @@ x = unifrnd(lb,ub,[nPop,D]);
 % Evaluate initial population
 pbest = x;
 
-costFun = @calc_fit3;
+costFun = @calc_fit4;
 
 
 f_x = 500*ones(nPop,1);
 
 for i = 1:nPop
     bic = conti2bit(x(i,:),c2bT);
-    f_x(i) = costFun(bic,data,lamda,miu);
+    f_x(i) = costFun(bic,data,lamda,miu,omega);
 end
 
 f_pbest = f_x;
@@ -57,6 +60,7 @@ f_gbest = f_pbest(g);
 
 history = zeros(maxit,1);
 
+f_gbest_old = f_gbest;
 for  it = 1:maxit 
 
     alpha = (w2 - w1) * (maxit - it)/maxit + w1;
@@ -84,7 +88,7 @@ for  it = 1:maxit
         x(i,:) = min(x(i,:),ub);
 
         bic = conti2bit(x(i,:),c2bT);
-        f_x(i) = costFun(bic,data,lamda,miu);
+        f_x(i) = costFun(bic,data,lamda,miu,omega);
         
 
         if f_x(i) < f_pbest(i)
@@ -98,12 +102,29 @@ for  it = 1:maxit
         end
 
     end
+    % early stopping
+    change = f_gbest_old - f_gbest;
+    if change < early_stopping_threshold
+        early_stopping_cnt = early_stopping_cnt + 1;
+    else
+        early_stopping_cnt = 0;
+    end
     % Display Iteration Information
     if ShowIterInfo
         disp(['Iteration ' num2str(it) ': Best Cost = ' num2str(f_gbest)]);
     end
     history(it) = f_gbest;
+    f_gbest_old = f_gbest;
 
+    if early_stopping_cnt > early_stopping_maxcnt
+        disp('qpsob early stoping');
+        break
+    end
+end % end of iteration
+if it < maxit
+    for i =it:maxit
+        history(i) = f_gbest;
+    end
 end
 bic = conti2bit(gbest,c2bT);
 cost = f_gbest;
