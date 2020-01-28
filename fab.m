@@ -25,21 +25,19 @@ function [bic,cost,score,history]=fab(nPop,data,lamda,miu,omega)
     n=nPop;
     MaxGeneration=300;
     early_stopping_cnt = 0;
-    early_stopping_maxcnt = 30;
-    early_stopping_threshold = 1.0*10^-4;
+    early_stopping_maxcnt = 40;
     alpha=0.25;
     betamin=0.20;
     gamma=1;
 
     history = zeros(MaxGeneration,1);
     % 初始化萤火虫位置 generating the initial locations of n fireflies
-    [ns,zn] = init_ffa(n,d,Lb,Ub);
+    [ns,~] = init_ffa(n,d,Lb,Ub);
     % 对每个萤火虫计算目标函数值 Evaluate new solutions (for all n fireflies)
-    for i=1:n
-        bic = conti2bit(ns(i,:),c2bT);
-        zn(i)=costFun(bic,data,lamda,miu,omega);
-    end
+    bic = conti2bit(ns, c2bT);
+    zn = costFun(bic,data,lamda,miu,omega);
     LightbestO = min(zn);
+
     for k=1:MaxGeneration % 迭代开始
         % 更新alpha（可选）This line of reducing alpha is optional
         alpha=alpha_new(alpha,MaxGeneration);
@@ -59,7 +57,7 @@ function [bic,cost,score,history]=fab(nPop,data,lamda,miu,omega)
 
         % early stopping
         change = LightbestO - Lightbest;
-        if change < early_stopping_threshold
+        if change < LightbestO/10000
             early_stopping_cnt = early_stopping_cnt + 1;
         else
             early_stopping_cnt = 0;
@@ -69,10 +67,8 @@ function [bic,cost,score,history]=fab(nPop,data,lamda,miu,omega)
         [ns]=ffa_move(n,d,ns,Lightn,nso,Lighto,alpha,betamin,gamma,Lb,Ub);
         
         % 对每个萤火虫计算目标函数值 Evaluate new solutions (for all n fireflies)
-        for i=1:n
-            bic = conti2bit(ns(i,:),c2bT);
-            zn(i)=costFun(bic,data,lamda,miu,omega);
-        end
+        bic = conti2bit(ns,c2bT);
+        zn=costFun(bic,data,lamda,miu,omega);
         
         if ShowIterInfo
             disp(['Iteration ' num2str(k) ': Best Cost = ' num2str(Lightbest)]);

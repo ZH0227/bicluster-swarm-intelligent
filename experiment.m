@@ -1,62 +1,66 @@
 nPop=100;
 runtime = 1;
-saveIf =0;
-for data = 1:1
+saveIf =1;
+for data = 2:2
     if data == 1
         dataName = 'BCLL';
-        lamda=500;
-        miu=10;
-        omega=0.03;
+        lamda=1*10^4;
+        miu=1*10^3;
+        omega=0;
     elseif data ==2
         dataName = 'YC';
-        lamda=1000000;
-        miu=1000;  
-        omega=300000;
+        lamda=2*10^5;
+        miu=2*10^3;
+        omega=0;
     elseif data==3
         dataName = 'RAT';
-        lamda=20000000;
-        miu=10000;
-        omega=30000000;
+        lamda=1*10^4;
+        miu=1*10^3;
+        omega=0;
     elseif data==4 
         dataName = 'PBC';
-        lamda=2000;
-        miu=30;
-        omega=0.1;
+        lamda=3*10^6;
+        miu=4*10^4;
+        omega=0;
     end
     for i = 1:1
 
-        [bicC,costC,scoreC,historyC] = csb(nPop,data,lamda,miu,omega);
-        [bicF,costF,scoreF,historyF] = fab(nPop,data,lamda,miu,omega);
+        [bicCS,costCS,scoreCS,historyCS] = csb(nPop,data,lamda,miu,omega);
+        [bicFA,costFA,scoreFA,historyFA] = fab(nPop,data,lamda,miu,omega);
         [bicPSO,costPSO,scorePSO,historyPSO] = psob(nPop,data,lamda,miu,omega);
         [bicQPSO,costQPSO,scoreQPSO,historyQPSO] = qpsob(nPop,data,lamda,miu,omega);
-        [bicCF,costCF,scoreCF,historyCF] = csfa(nPop,data,lamda,miu,omega);
-        figure;
+        [bicCSFA,costCSFA,scoreCSFA,historyCSFA] = csfa(nPop,data,lamda,miu,omega);
 
-        plot(historyC,'LineWidth',2);hold on;
-        plot(historyF,'LineWidth',2);hold on;
-        plot(historyPSO,'LineWidth',2);hold on;
-        plot(historyQPSO,'LineWidth',2);hold on;
-        plot(historyCF,'LineWidth',2);
-        legend('CS','FA','PSO','QPSO','CSFA')
-        set(get(gca, 'XLabel'), 'String', 'Number of iterations');
-        set(get(gca, 'YLabel'), 'String', 'Fitness value');
+        % figure;
+        % plot(historyCS,'LineWidth',2);hold on;
+        % plot(historyFA,'LineWidth',2);hold on;
+        % plot(historyPSO,'LineWidth',2);hold on;
+        % plot(historyQPSO,'LineWidth',2);hold on;
+        % plot(historyCSFA,'LineWidth',2);
+        % legend('CS','FA','PSO','QPSO','CSFA')
+        % set(get(gca, 'XLabel'), 'String', 'Number of iterations');
+        % set(get(gca, 'YLabel'), 'String', 'Fitness value');
+
         if saveIf
-            PngFile = ['./exper2/',dataName,num2str(i),'.png']
-            print(gcf,'-dpng',PngFile)
+            data_root = fullfile('./result', dataName);
+            algs = ["FA","CS","CSFA","PSO","QPSO"];
+            for k=1:size(algs,2)
+                alg = char(algs(k));
+                alg_path = fullfile(data_root, alg);
+                mkdir(alg_path);
+                records = ["bic","history","score","cost"];
+                for j=1:size(records,2)
+                    rec = char(records(j));
+                    %./result/dataName/algName/*_*.mat
+                    file_name = [alg_path,'/',num2str(i,'%04d'),'_',rec,'.mat'];
+                    save(file_name, [rec,alg]);
+                end
+            end
+            % PngFile = fullfile(data_root,)
+            % print(gcf,'-dpng',PngFile)
 
-            scoreFile = ['./exper2/',dataName,num2str(i),'_score.mat']
-            score = [scoreC;scoreF;scoreCF];
-            save(scoreFile, 'score')
+        end %end of save
 
-            bicFile = ['./exper2/',dataName,num2str(i),'_bic.mat']
-            bic = [bicC;bicF;bicCF];
-            save(bicFile, 'bic')
-
-            costFile = ['./exper/',dataName,num2str(i),'_cost.mat']
-            cost = [costC;costF;costCF];
-            save(costFile, 'cost')
-        end
-    end
+    end %end of times
     % close(figure(gcf));
-end
-% print -deps Le
+end % end of dataset

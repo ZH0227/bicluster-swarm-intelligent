@@ -25,8 +25,7 @@ ShowIterInfo =1;
 
 maxit = 300;          % Maximum Number of Iterations
 early_stopping_cnt = 0;
-early_stopping_maxcnt = 30;
-early_stopping_threshold = 1.0*10^-4;
+early_stopping_maxcnt = 40;
 % nPop = 20;            % Population Size (Swarm Size)
 w1 = 0.5;
 w2 = 1.0;
@@ -104,7 +103,7 @@ for  it = 1:maxit
     end
     % early stopping
     change = f_gbest_old - f_gbest;
-    if change < early_stopping_threshold
+    if change < f_gbest_old/10000
         early_stopping_cnt = early_stopping_cnt + 1;
     else
         early_stopping_cnt = 0;

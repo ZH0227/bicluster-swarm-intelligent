@@ -15,9 +15,9 @@ function [fitness]=calc_fit4(nest,data,lamda,miu,omega)
         volCond = vol(:,3);
         invGene = lamda./volGene;
         invCond = miu./volCond;
-        vari = calc_var(nest,data);
-        invVar = omega./vari;
+        % vari = calc_var(nest,data);
+        % invVar = omega./vari;
         
-        fitness = resi+invGene+invCond+invVar;
+        fitness = resi+invGene+invCond;
     
 end

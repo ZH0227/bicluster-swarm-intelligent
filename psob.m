@@ -18,8 +18,7 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu,omega)
 
     MaxIt = 300;   % Maximum Number of Iterations
     early_stopping_cnt = 0;
-    early_stopping_maxcnt = 30;
-    early_stopping_threshold = 1.0*10^-4;
+    early_stopping_maxcnt = 40;
 
     % nPop = 20;     % Population Size (Swarm Size)
 
@@ -124,7 +123,7 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu,omega)
 
         % early stopping
         change =  GBestCostOld - GlobalBest.Cost;
-        if change < early_stopping_threshold
+        if change < GBestCostOld/10000
             early_stopping_cnt = early_stopping_cnt + 1;
         else
             early_stopping_cnt = 0;

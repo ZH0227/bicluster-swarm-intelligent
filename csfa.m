@@ -11,8 +11,7 @@ function [bic,cost,score,history]=csfa(nPop,data,lamda,miu,omega)
     %% Change this if you want to get better results
     N_IterTotal=300;
     early_stopping_cnt = 0;
-    early_stopping_maxcnt = 30;
-    early_stopping_threshold = 1.0*10^-4;
+    early_stopping_maxcnt = 40;
     costFun = @calc_fit4;
     %% Simple bounds of the search domain
     % Lower bounds
@@ -50,7 +49,7 @@ function [bic,cost,score,history]=csfa(nPop,data,lamda,miu,omega)
 
         % early stopping
         change = fmin_old - fmin;
-        if change < early_stopping_threshold
+        if change < fmin_old/10000
             early_stopping_cnt = early_stopping_cnt + 1;
         else
             early_stopping_cnt = 0;
