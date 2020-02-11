@@ -1,7 +1,7 @@
 nPop=100;
 runtime = 1;
 saveIf =1;
-for data = 2:2
+for data = 4:4
     if data == 1
         dataName = 'BCLL';
         lamda=1*10^4;
@@ -14,8 +14,8 @@ for data = 2:2
         omega=0;
     elseif data==3
         dataName = 'RAT';
-        lamda=1*10^4;
-        miu=1*10^3;
+        lamda=6*10^5;
+        miu=1*10^4;
         omega=0;
     elseif data==4 
         dataName = 'PBC';
@@ -23,7 +23,7 @@ for data = 2:2
         miu=4*10^4;
         omega=0;
     end
-    for i = 1:1
+    for i = 2:2
 
         [bicCS,costCS,scoreCS,historyCS] = csb(nPop,data,lamda,miu,omega);
         [bicFA,costFA,scoreFA,historyFA] = fab(nPop,data,lamda,miu,omega);
@@ -47,7 +47,9 @@ for data = 2:2
             for k=1:size(algs,2)
                 alg = char(algs(k));
                 alg_path = fullfile(data_root, alg);
-                mkdir(alg_path);
+                if exist(alg_path, 'dir')==0
+                    mkdir(alg_path);
+                end
                 records = ["bic","history","score","cost"];
                 for j=1:size(records,2)
                     rec = char(records(j));
