@@ -1,40 +1,31 @@
-function [bic,cost,score,history]=csfa(nPop,data,lamda,miu,omega)
-    data = choseData(data);
-    n = size(data,1);
-    m = size(data,2);
-    D=n+m; 
+function [bic,cost,score,history]=csfa(nPop,lamda,miu,omega)
+    global Lb Ub dim
     
     pa=0.25;
     alpha=0.25;
     ShowIterInfo =1;
-    c2bT = 0.5;
     %% Change this if you want to get better results
     N_IterTotal=300;
     early_stopping_cnt = 0;
     early_stopping_maxcnt = 40;
     costFun = @calc_fit4;
-    %% Simple bounds of the search domain
-    % Lower bounds
-    Lb=zeros(1,D); 
-    % Upper bounds
-    Ub=ones(1,D);
     
     % Random initial solutions
-    nest = zeros(nPop,D);
+    nest = zeros(nPop,dim);
     for i=1:nPop
         nest(i,:)=Lb+(Ub-Lb).*rand(size(Lb));
     end
     
     % Get the current best
     fitness=10^10*ones(nPop,1);
-    [fmin,best,fa,fitness]=get_best_nest(nest,nest,fitness,data,lamda,miu,omega,c2bT,costFun);
+    [fmin,best,fa,fitness]=get_best_nest(nest,nest,fitness,lamda,miu,omega,costFun);
     history = zeros(N_IterTotal,1);
 
     fmin_old = min(fitness);
     for i =1:N_IterTotal
         % [fmin_old,~,~,~]=get_best_nest(nest,nest,fitness,data,lamda,miu,omega,c2bT,costFun);
-        [nest,fitnessC,bestC,minC]=cs_iter(fa,fitness,Lb,Ub,pa,data,lamda,miu,omega,c2bT,costFun);
-        [fa,fitness,bestF,minF]=fa_iter(nest,fitnessC,Lb,Ub,data,lamda,miu,omega,c2bT,costFun,N_IterTotal,alpha);
+        [nest,fitnessC,bestC,minC]=cs_iter(fa,fitness,pa,lamda,miu,omega,costFun);
+        [fa,fitness,bestF,minF]=fa_iter(nest,fitnessC,lamda,miu,omega,costFun,N_IterTotal,alpha);
 
         if minC < minF
             fmin = minC;
@@ -70,25 +61,25 @@ function [bic,cost,score,history]=csfa(nPop,data,lamda,miu,omega)
             history(k) = fmin;
         end
     end
-    bic = conti2bit(best,c2bT);
+    bic = conti2bit(best);
     cost = fmin;
-    score = calc_bench(bic,data);
+    score = calc_bench(bic);
 end
 
 %% --------------- All subfunctions are list below ------------------
-function [nest,fitness,best,fmin]=cs_iter(nest,fitness,Lb,Ub,pa,data,lamda,miu,omega,c2bT,costFun)
+function [nest,fitness,best,fmin]=cs_iter(nest,fitness,pa,lamda,miu,omega,costFun)
 %
 %
     [~,index]=min(fitness);
     bestnest = nest(index,:);
-    new_nest=get_cuckoos(nest,bestnest,Lb,Ub);   
-    [fmin,~,nest,fitness]=get_best_nest(nest,new_nest,fitness,data,lamda,miu,omega,c2bT,costFun);
+    new_nest=get_cuckoos(nest,bestnest);   
+    [fmin,~,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega,costFun);
 
     % Discovery and randomization
-    new_nest=empty_nests(nest,Lb,Ub,pa) ;
+    new_nest=empty_nests(nest,pa) ;
 
     % Evaluate this set of solutions
-    [fnew,best,nest,fitness]=get_best_nest(nest,new_nest,fitness,data,lamda,miu,omega,c2bT,costFun);
+    [fnew,best,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega,costFun);
 
     % Find the best objective so far  
     if fnew<fmin
@@ -96,7 +87,7 @@ function [nest,fitness,best,fmin]=cs_iter(nest,fitness,Lb,Ub,pa,data,lamda,miu,o
     end
 end
 
-function [fa,fitness,best,fmin]=fa_iter(ns,zn,Lb,Ub,data,lamda,miu,omega,c2bT,costFun,N_IterTotal,alpha)
+function [fa,fitness,best,fmin]=fa_iter(ns,zn,lamda,miu,omega,costFun,N_IterTotal,alpha)
 
     % 更新alpha（可选）This line of reducing alpha is optional
     alpha=alpha_new(alpha,N_IterTotal);
@@ -118,12 +109,12 @@ function [fa,fitness,best,fmin]=fa_iter(ns,zn,Lb,Ub,data,lamda,miu,omega,c2bT,co
     % Lightbest=Lightn(1);
 
     % 向较优方向移动 Move all fireflies to the better locations
-    [ns]=ffa_move(n,d,ns,Lightn,nso,Lighto,alpha,betamin,gamma,Lb,Ub);
+    [ns]=ffa_move(n,d,ns,Lightn,nso,Lighto,alpha,betamin,gamma);
 
     % 对每个萤火虫计算目标函数值 Evaluate new solutions (for all n fireflies)
     for i=1:n
-        bic = conti2bit(ns(i,:),c2bT);
-        zn(i)=costFun(bic,data,lamda,miu,omega);
+        bic = conti2bit(ns(i,:));
+        zn(i)=costFun(bic,lamda,miu,omega);
     end
     %% 找出当前最优 Find the current best
     [fmin,index]=min(zn);
@@ -134,7 +125,7 @@ end
 
 
 %% Get cuckoos by ramdom walk
-function nest=get_cuckoos(nest,best,Lb,Ub)
+function nest=get_cuckoos(nest,best)
     % Levy flights
     n=size(nest,1);
     % Levy exponent and coefficient
@@ -163,15 +154,15 @@ function nest=get_cuckoos(nest,best,Lb,Ub)
         % Now the actual random walks or flights
         s=s+stepsize.*randn(size(s));
        % Apply simple bounds/limits
-       nest(j,:)=simplebounds(s,Lb,Ub);
+       nest(j,:)=simplebounds(s);
     end
 end    
     %% Find the current best nest
-function [fmin,best,nest,fitness]=get_best_nest(nest,newnest,fitness,data,lamda,miu,omega,c2bT,costFun)
+function [fmin,best,nest,fitness]=get_best_nest(nest,newnest,fitness,lamda,miu,omega,costFun)
     % Evaluating all new solutions
     for j=1:size(nest,1)
-        bic = conti2bit(newnest(j,:),c2bT);
-        fnew=costFun(bic,data,lamda,miu,omega);
+        bic = conti2bit(newnest(j,:));
+        fnew=costFun(bic,lamda,miu,omega);
         if fnew<=fitness(j)
            fitness(j)=fnew;
            nest(j,:)=newnest(j,:);
@@ -182,7 +173,7 @@ function [fmin,best,nest,fitness]=get_best_nest(nest,newnest,fitness,data,lamda,
     best=nest(K,:);
 end 
     %% Replace some nests by constructing new solutions/nests
-function new_nest=empty_nests(nest,Lb,Ub,pa)
+function new_nest=empty_nests(nest,pa)
     % A fraction of worse nests are discovered with a probability pa
     n=size(nest,1);
     % Discovered or not -- a status vector
@@ -197,11 +188,12 @@ function new_nest=empty_nests(nest,Lb,Ub,pa)
     new_nest=nest+stepsize.*K;
     for j=1:size(new_nest,1)
         s=new_nest(j,:);
-      new_nest(j,:)=simplebounds(s,Lb,Ub);  
+      new_nest(j,:)=simplebounds(s);  
     end
 end 
 % Application of simple constraints
-function s=simplebounds(s,Lb,Ub)
+function s=simplebounds(s)
+    global Lb Ub
     % Apply the lower bound
     ns_tmp=s;
     I=ns_tmp<Lb;
@@ -214,8 +206,9 @@ function s=simplebounds(s,Lb,Ub)
     s=ns_tmp;
 end
 % Move all fireflies toward brighter ones
-function [ns]=ffa_move(n,d,ns,Lightn,nso,Lighto,alpha,betamin,gamma,Lb,Ub)
+function [ns]=ffa_move(n,d,ns,Lightn,nso,Lighto,alpha,betamin,gamma)
 % 参数取值范围绝对值 Scaling of the system
+    global Lb Ub
     scale=abs(Ub-Lb);
 
     % 更新萤火虫 Updating fireflies
@@ -234,7 +227,7 @@ function [ns]=ffa_move(n,d,ns,Lightn,nso,Lighto,alpha,betamin,gamma,Lb,Ub)
     end % end for i
 
     % 防止越界 Check if the updated solutions/locations are within limits
-    [ns]=findlimits(n,ns,Lb,Ub);
+    [ns]=findlimits(n,ns);
 end
 % This function is optional, as it is not in the original FA
 % The idea to reduce randomness is to increase the convergence,
@@ -248,7 +241,8 @@ function alpha=alpha_new(alpha,NGen)
     alpha=(1-delta)*alpha;
 end
 % 防止越界 Make sure the fireflies are within the bounds/limits
-function [ns]=findlimits(n,ns,Lb,Ub)
+function [ns]=findlimits(n,ns)
+    global Lb Ub
     for i=1:n
         % Apply the lower bound
         ns_tmp=ns(i,:);

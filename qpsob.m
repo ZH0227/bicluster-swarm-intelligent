@@ -1,4 +1,4 @@
-function [bic,cost,score,history] = qpsob(nPop,data,lamda,miu,omega)
+function [bic,cost,score,history] = qpsob(nPop,lamda,miu,omega)
 
 % INPUT:
 %   data    n*m
@@ -10,11 +10,7 @@ function [bic,cost,score,history] = qpsob(nPop,data,lamda,miu,omega)
 %   histout : record of function evaluations and fitness value by iteration
 
 %% Problem Definiton
-data = choseData(data);
-n = size(data,1);
-m = size(data,2);
-D = n+m;        % Number of Unknown (Decision) Variables
-
+global  dim
 
 lb = 0;	        % Lower Bound of Decision Variables
 ub = 1;         % Upper Bound of Decision Variables
@@ -33,9 +29,8 @@ w2 = 1.0;
 c1 = 1.5;
 c2 = 1.5;
 
-c2bT = 0.5;         % decide 0 or 1, threshold
 % Initializing solution
-x = unifrnd(lb,ub,[nPop,D]);
+x = unifrnd(lb,ub,[nPop,dim]);
 
 % Evaluate initial population
 pbest = x;
@@ -46,8 +41,8 @@ costFun = @calc_fit4;
 f_x = 500*ones(nPop,1);
 
 for i = 1:nPop
-    bic = conti2bit(x(i,:),c2bT);
-    f_x(i) = costFun(bic,data,lamda,miu,omega);
+    bic = conti2bit(x(i,:));
+    f_x(i) = costFun(bic,lamda,miu,omega);
 end
 
 f_pbest = f_x;
@@ -67,11 +62,11 @@ for  it = 1:maxit
 
     for i = 1:nPop
 
-        fi = rand(1,D);
+        fi = rand(1,dim);
 
         p = (c1*fi.*pbest(i,:) + c2*(1-fi).*gbest)/(c1 + c2);
 
-        u = rand(1,D);
+        u = rand(1,dim);
         
         b = alpha*abs(x(i,:) - mbest);
         v = log(1./u);
@@ -86,8 +81,8 @@ for  it = 1:maxit
         x(i,:) = max(x(i,:),lb);
         x(i,:) = min(x(i,:),ub);
 
-        bic = conti2bit(x(i,:),c2bT);
-        f_x(i) = costFun(bic,data,lamda,miu,omega);
+        bic = conti2bit(x(i,:));
+        f_x(i) = costFun(bic,lamda,miu,omega);
         
 
         if f_x(i) < f_pbest(i)
@@ -125,16 +120,9 @@ if it < maxit
         history(i) = f_gbest;
     end
 end
-bic = conti2bit(gbest,c2bT);
+bic = conti2bit(gbest);
 cost = f_gbest;
 
-% costs = zeros(nPop,1);
-% bics = zeros(nPop,D);
-% for i = 1:nPop
-%     costs(i) = f_x(i);
-%     bics(i,:) = conti2bit(x(i,:),c2bT);
-% end
-score = calc_bench(bic,data);
-
+score = calc_bench(bic);
 
 end

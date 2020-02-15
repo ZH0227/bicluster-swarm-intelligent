@@ -1,18 +1,14 @@
-function [bic,cost,score,history] = psob(nPop,data,lamda,miu,omega)
+function [bic,cost,score,history] = psob(nPop,lamda,miu,omega)
 %   data    n*m
 %   lamda   the weight of gene Volume
 %   miu     the weight of condition Volume
     %% Problem Definiton
-    data = choseData(data);
-    n = size(data,1);
-    m = size(data,2);
-    nVar = n+m;        % Number of Unknown (Decision) Variables
+    global  dim
 
-    VarSize = [1 nVar];         % Matrix Size of Decision Variables
+    VarSize = [1 dim];         % Matrix Size of Decision Variables
 
     VarMin = 0;	        % Lower Bound of Decision Variables
     VarMax = 1;         % Upper Bound of Decision Variables
-    c2bT = 0.5;         % decide 0 or 1 threshold
     costFun = @calc_fit4;
     %% Parameters of PSO
 
@@ -58,8 +54,8 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu,omega)
         particle(i).Velocity = zeros(VarSize);
 
         % Evaluation
-        bic = conti2bit(particle(i).Position,c2bT);
-        particle(i).Cost = costFun(bic,data,lamda,miu,omega);
+        bic = conti2bit(particle(i).Position);
+        particle(i).Cost = costFun(bic,lamda,miu,omega);
 
         % Update the Personal Best
         particle(i).Best.Position = particle(i).Position;
@@ -104,8 +100,8 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu,omega)
               particle(i).Position = min(particle(i).Position, VarMax);
 
             % Evaluation
-            bic = conti2bit(particle(i).Position,c2bT);
-            particle(i).Cost = costFun(bic,data,lamda,miu,omega);
+            bic = conti2bit(particle(i).Position);
+            particle(i).Cost = costFun(bic,lamda,miu,omega);
 
             % Update Personal Best
             if particle(i).Cost < particle(i).Best.Cost
@@ -150,14 +146,7 @@ function [bic,cost,score,history] = psob(nPop,data,lamda,miu,omega)
             history(i) = GlobalBest.Cost;
         end
     end
-    bic = conti2bit(GlobalBest.Position,c2bT);
+    bic = conti2bit(GlobalBest.Position);
     cost = GlobalBest.Cost;
-    % pop = particle;
-    % costs = zeros(nPop,1);
-    % bics = zeros(nPop,nVar);
-    % for i = 1:nPop
-    %     costs(i) =  particle(i).Cost;
-    %     bics(i,:) = conti2bit(particle(i).Position,c2bT);
-    % end
-    score = calc_bench(bic,data);
+    score = calc_bench(bic);
 end

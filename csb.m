@@ -1,45 +1,36 @@
-function [bic,cost,score,history]=csb(nPop,data,lamda,miu,omega)
-    data = choseData(data);
-    n = size(data,1);
-    m = size(data,2);
-    D=n+m; 
+function [bic,cost,score,history]=csb(nPop,lamda,miu,omega)
+    global data Lb Ub dim
     
     pa=0.25;
     ShowIterInfo =1;
-    c2bT = 0.5;
     %% Change this if you want to get better results
     N_IterTotal=300;
     early_stopping_cnt = 0;
     early_stopping_maxcnt = 40;
     costFun = @calc_fit4;
-    %% Simple bounds of the search domain
-    % Lower bounds
-    Lb=zeros(1,D); 
-    % Upper bounds
-    Ub=ones(1,D);
     
     % Random initial solutions
-    nest = zeros(nPop,D);
+    nest = zeros(nPop,dim);
     for i=1:nPop
         nest(i,:)=Lb+(Ub-Lb).*rand(size(Lb));
     end
     
     % Get the current best
     fitness=10^10*ones(nPop,1);
-    [fmin,bestnest,nest,fitness]=get_best_nest(nest,nest,fitness,data,lamda,miu,omega,c2bT,costFun);
+    [fmin,bestnest,nest,fitness]=get_best_nest(nest,nest,fitness,lamda,miu,omega,costFun);
     history = zeros(N_IterTotal,1);
 
     %% Starting iterations
     for iter=1:N_IterTotal
         % Generate new solutions (but keep the current best)
-         new_nest=get_cuckoos(nest,bestnest,Lb,Ub);   
-         [~,~,nest,fitness]=get_best_nest(nest,new_nest,fitness,data,lamda,miu,omega,c2bT,costFun);
+         new_nest=get_cuckoos(nest,bestnest);   
+         [~,~,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega,costFun);
 
          % Discovery and randomization
-          new_nest=empty_nests(nest,Lb,Ub,pa) ;
+          new_nest=empty_nests(nest,pa) ;
         
         % Evaluate this set of solutions
-          [fnew,best,nest,fitness]=get_best_nest(nest,new_nest,fitness,data,lamda,miu,omega,c2bT,costFun);
+          [fnew,best,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega,costFun);
 
         % early stopping
         change = fmin - fnew;
@@ -70,22 +61,13 @@ function [bic,cost,score,history]=csb(nPop,data,lamda,miu,omega)
         end
     end
     cost = fmin;
-    bic = conti2bit(bestnest,c2bT);
+    bic = conti2bit(bestnest);
     score = calc_bench(bic,data);
 
-    % costs = fitness;
-    % bics = zeros(nPop,D);
-    % for i = 1:nPop
-    %     bics(i,:) = conti2bit(nest(i,:),c2bT);
-    % end
-    % score = calc_bench(bics,data);
-
-    %% Post-optimization processing
-    %% Display all the nests
 end
 %% --------------- All subfunctions are list below ------------------
 %% Get cuckoos by ramdom walk
-function nest=get_cuckoos(nest,best,Lb,Ub)
+function nest=get_cuckoos(nest,best)
     % Levy flights
     n=size(nest,1);
     % Levy exponent and coefficient
@@ -114,14 +96,14 @@ function nest=get_cuckoos(nest,best,Lb,Ub)
         % Now the actual random walks or flights
         s=s+stepsize.*randn(size(s));
        % Apply simple bounds/limits
-       nest(j,:)=simplebounds(s,Lb,Ub);
+       nest(j,:)=simplebounds(s);
     end
 end    
     %% Find the current best nest
-function [fmin,best,nest,fitness]=get_best_nest(nest,newnest,fitness,data,lamda,miu,omega,c2bT,costFun)
+function [fmin,best,nest,fitness]=get_best_nest(nest,newnest,fitness,lamda,miu,omega,costFun)
     % Evaluating all new solutions
-    bics = conti2bit(newnest, c2bT);
-    fnews=costFun(bics,data,lamda,miu,omega);
+    bics = conti2bit(newnest);
+    fnews=costFun(bics,lamda,miu,omega);
     for j=1:size(nest,1)
         fnew = fnews(j);
         if fnew<=fitness(j)
@@ -134,7 +116,7 @@ function [fmin,best,nest,fitness]=get_best_nest(nest,newnest,fitness,data,lamda,
     best=nest(K,:);
 end 
     %% Replace some nests by constructing new solutions/nests
-function new_nest=empty_nests(nest,Lb,Ub,pa)
+function new_nest=empty_nests(nest,pa)
     % A fraction of worse nests are discovered with a probability pa
     n=size(nest,1);
     % Discovered or not -- a status vector
@@ -149,11 +131,12 @@ function new_nest=empty_nests(nest,Lb,Ub,pa)
     new_nest=nest+stepsize.*K;
     for j=1:size(new_nest,1)
         s=new_nest(j,:);
-      new_nest(j,:)=simplebounds(s,Lb,Ub);  
+      new_nest(j,:)=simplebounds(s);  
     end
 end 
 % Application of simple constraints
-function s=simplebounds(s,Lb,Ub)
+function s=simplebounds(s)
+    global Lb Ub
     % Apply the lower bound
     ns_tmp=s;
     I=ns_tmp<Lb;
