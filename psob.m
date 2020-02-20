@@ -3,13 +3,12 @@ function [bic,cost,score,history] = psob(nPop,lamda,miu,omega)
 %   lamda   the weight of gene Volume
 %   miu     the weight of condition Volume
     %% Problem Definiton
-    global  dim
+    global  dim costFun
 
     VarSize = [1 dim];         % Matrix Size of Decision Variables
 
     VarMin = 0;	        % Lower Bound of Decision Variables
     VarMax = 1;         % Upper Bound of Decision Variables
-    costFun = @calc_fit4;
     %% Parameters of PSO
 
     MaxIt = 300;   % Maximum Number of Iterations
@@ -130,7 +129,7 @@ function [bic,cost,score,history] = psob(nPop,lamda,miu,omega)
 
         % Display Iteration Information
         if ShowIterInfo
-            disp(['Iteration ' num2str(it) ': Best Cost = ' num2str(history(it))]);
+            disp(['psob=> ','Iteration ' num2str(it) ': Best Cost = ' num2str(history(it))]);
         end
 
         % Damping Inertia Coefficient

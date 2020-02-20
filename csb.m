@@ -1,5 +1,5 @@
 function [bic,cost,score,history]=csb(nPop,lamda,miu,omega)
-    global data Lb Ub dim
+    global Lb Ub dim
     
     pa=0.25;
     ShowIterInfo =1;
@@ -7,7 +7,6 @@ function [bic,cost,score,history]=csb(nPop,lamda,miu,omega)
     N_IterTotal=300;
     early_stopping_cnt = 0;
     early_stopping_maxcnt = 40;
-    costFun = @calc_fit4;
     
     % Random initial solutions
     nest = zeros(nPop,dim);
@@ -17,20 +16,20 @@ function [bic,cost,score,history]=csb(nPop,lamda,miu,omega)
     
     % Get the current best
     fitness=10^10*ones(nPop,1);
-    [fmin,bestnest,nest,fitness]=get_best_nest(nest,nest,fitness,lamda,miu,omega,costFun);
+    [fmin,bestnest,nest,fitness]=get_best_nest(nest,nest,fitness,lamda,miu,omega);
     history = zeros(N_IterTotal,1);
 
     %% Starting iterations
     for iter=1:N_IterTotal
         % Generate new solutions (but keep the current best)
          new_nest=get_cuckoos(nest,bestnest);   
-         [~,~,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega,costFun);
+         [~,~,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega);
 
          % Discovery and randomization
           new_nest=empty_nests(nest,pa) ;
         
         % Evaluate this set of solutions
-          [fnew,best,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega,costFun);
+          [fnew,best,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega);
 
         % early stopping
         change = fmin - fnew;
@@ -46,7 +45,7 @@ function [bic,cost,score,history]=csb(nPop,lamda,miu,omega)
         end
         history(iter) = fmin;
         if ShowIterInfo
-            disp(['Iteration ' num2str(iter) ': Best Cost = ' num2str(fmin)]);
+            disp(['csb=> ','Iteration ' num2str(iter) ': Best Cost = ' num2str(fmin)]);
         end
 
         if early_stopping_cnt > early_stopping_maxcnt
@@ -62,7 +61,7 @@ function [bic,cost,score,history]=csb(nPop,lamda,miu,omega)
     end
     cost = fmin;
     bic = conti2bit(bestnest);
-    score = calc_bench(bic,data);
+    score = calc_bench(bic);
 
 end
 %% --------------- All subfunctions are list below ------------------
@@ -100,8 +99,9 @@ function nest=get_cuckoos(nest,best)
     end
 end    
     %% Find the current best nest
-function [fmin,best,nest,fitness]=get_best_nest(nest,newnest,fitness,lamda,miu,omega,costFun)
+function [fmin,best,nest,fitness]=get_best_nest(nest,newnest,fitness,lamda,miu,omega)
     % Evaluating all new solutions
+    global costFun
     bics = conti2bit(newnest);
     fnews=costFun(bics,lamda,miu,omega);
     for j=1:size(nest,1)

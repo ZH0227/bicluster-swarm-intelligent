@@ -6,7 +6,7 @@ function [bic,cost,score,history]=fab(nPop,lamda,miu,omega)
     %% Problem Definiton
     % The Flag for Showing Iteration Information
     ShowIterInfo = 1;
-    costFun = @calc_fit4;
+    global costFun
 
     % n=number of fireflies
     % MaxGeneration=number of pseudo time steps
@@ -64,7 +64,7 @@ function [bic,cost,score,history]=fab(nPop,lamda,miu,omega)
         zn=costFun(bic,lamda,miu,omega);
         
         if ShowIterInfo
-            disp(['Iteration ' num2str(k) ': Best Cost = ' num2str(Lightbest)]);
+            disp(['fab=> ','Iteration ' num2str(k) ': Best Cost = ' num2str(Lightbest)]);
         end
         history(k) = Lightbest;
         LightbestO = Lightbest;

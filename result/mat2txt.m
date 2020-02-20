@@ -25,8 +25,9 @@ for i=1:length(datas)
         % MSRS = ones(bic_cnt,1);
         % VarS = ones(bic_cnt,1);
 
-        csvfile = [algPath, '.txt'];
-        fid = fopen(csvfile, 'w');
+        txtFile = [algPath, '.txt'];
+        disp(txtFile)
+        fid = fopen(txtFile, 'w');
         for k=1:bic_cnt
             load(fullfile(algPath,[num2str(k, '%04d'), '_', 'bic.mat']));
             load(fullfile(algPath,[num2str(k, '%04d'), '_', 'score.mat']));

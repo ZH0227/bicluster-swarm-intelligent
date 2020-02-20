@@ -10,7 +10,7 @@ function [bic,cost,score,history] = qpsob(nPop,lamda,miu,omega)
 %   histout : record of function evaluations and fitness value by iteration
 
 %% Problem Definiton
-global  dim
+global  dim costFun
 
 lb = 0;	        % Lower Bound of Decision Variables
 ub = 1;         % Upper Bound of Decision Variables
@@ -35,7 +35,6 @@ x = unifrnd(lb,ub,[nPop,dim]);
 % Evaluate initial population
 pbest = x;
 
-costFun = @calc_fit4;
 
 
 f_x = 500*ones(nPop,1);
@@ -105,7 +104,7 @@ for  it = 1:maxit
     end
     % Display Iteration Information
     if ShowIterInfo
-        disp(['Iteration ' num2str(it) ': Best Cost = ' num2str(f_gbest)]);
+        disp(['qpsob=> ','Iteration ' num2str(it) ': Best Cost = ' num2str(f_gbest)]);
     end
     history(it) = f_gbest;
     f_gbest_old = f_gbest;

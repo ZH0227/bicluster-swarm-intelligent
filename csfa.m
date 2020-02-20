@@ -8,7 +8,6 @@ function [bic,cost,score,history]=csfa(nPop,lamda,miu,omega)
     N_IterTotal=300;
     early_stopping_cnt = 0;
     early_stopping_maxcnt = 40;
-    costFun = @calc_fit4;
     
     % Random initial solutions
     nest = zeros(nPop,dim);
@@ -18,14 +17,14 @@ function [bic,cost,score,history]=csfa(nPop,lamda,miu,omega)
     
     % Get the current best
     fitness=10^10*ones(nPop,1);
-    [fmin,best,fa,fitness]=get_best_nest(nest,nest,fitness,lamda,miu,omega,costFun);
+    [fmin,best,fa,fitness]=get_best_nest(nest,nest,fitness,lamda,miu,omega);
     history = zeros(N_IterTotal,1);
 
     fmin_old = min(fitness);
     for i =1:N_IterTotal
         % [fmin_old,~,~,~]=get_best_nest(nest,nest,fitness,data,lamda,miu,omega,c2bT,costFun);
-        [nest,fitnessC,bestC,minC]=cs_iter(fa,fitness,pa,lamda,miu,omega,costFun);
-        [fa,fitness,bestF,minF]=fa_iter(nest,fitnessC,lamda,miu,omega,costFun,N_IterTotal,alpha);
+        [nest,fitnessC,bestC,minC]=cs_iter(fa,fitness,pa,lamda,miu,omega);
+        [fa,fitness,bestF,minF]=fa_iter(nest,fitnessC,lamda,miu,omega,N_IterTotal,alpha);
 
         if minC < minF
             fmin = minC;
@@ -49,7 +48,7 @@ function [bic,cost,score,history]=csfa(nPop,lamda,miu,omega)
 
         history(i) = fmin;
         if ShowIterInfo
-            disp(['Iteration ' num2str(i) ': Best Cost = ' num2str(fmin)]);
+            disp(['csfab=> ', 'Iteration ' num2str(i) ': Best Cost = ' num2str(fmin)]);
         end
         if early_stopping_cnt > early_stopping_maxcnt
             disp('csfab early stoping');
@@ -67,19 +66,19 @@ function [bic,cost,score,history]=csfa(nPop,lamda,miu,omega)
 end
 
 %% --------------- All subfunctions are list below ------------------
-function [nest,fitness,best,fmin]=cs_iter(nest,fitness,pa,lamda,miu,omega,costFun)
+function [nest,fitness,best,fmin]=cs_iter(nest,fitness,pa,lamda,miu,omega)
 %
 %
     [~,index]=min(fitness);
     bestnest = nest(index,:);
     new_nest=get_cuckoos(nest,bestnest);   
-    [fmin,~,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega,costFun);
+    [fmin,~,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega);
 
     % Discovery and randomization
     new_nest=empty_nests(nest,pa) ;
 
     % Evaluate this set of solutions
-    [fnew,best,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega,costFun);
+    [fnew,best,nest,fitness]=get_best_nest(nest,new_nest,fitness,lamda,miu,omega);
 
     % Find the best objective so far  
     if fnew<fmin
@@ -87,8 +86,8 @@ function [nest,fitness,best,fmin]=cs_iter(nest,fitness,pa,lamda,miu,omega,costFu
     end
 end
 
-function [fa,fitness,best,fmin]=fa_iter(ns,zn,lamda,miu,omega,costFun,N_IterTotal,alpha)
-
+function [fa,fitness,best,fmin]=fa_iter(ns,zn,lamda,miu,omega,N_IterTotal,alpha)
+    global costFun
     % 更新alpha（可选）This line of reducing alpha is optional
     alpha=alpha_new(alpha,N_IterTotal);
     betamin=0.20;
@@ -158,8 +157,9 @@ function nest=get_cuckoos(nest,best)
     end
 end    
     %% Find the current best nest
-function [fmin,best,nest,fitness]=get_best_nest(nest,newnest,fitness,lamda,miu,omega,costFun)
+function [fmin,best,nest,fitness]=get_best_nest(nest,newnest,fitness,lamda,miu,omega)
     % Evaluating all new solutions
+    global costFun
     for j=1:size(nest,1)
         bic = conti2bit(newnest(j,:));
         fnew=costFun(bic,lamda,miu,omega);

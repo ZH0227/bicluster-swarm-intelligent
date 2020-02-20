@@ -1,7 +1,8 @@
 nPop=100;
 runtime = 1;
 saveIf =1;
-global data c2bT Lb Ub data_n dim
+global data c2bT Lb Ub data_n dim costFun
+costFun = @calc_fit4;
 c2bT = 0.5;         % decide 0 or 1 threshold
 for no_data = 2:2
     if no_data == 1
@@ -31,7 +32,7 @@ for no_data = 2:2
     dim = data_n + data_m;
     Lb = zeros(1,dim);
     Ub = 1.*ones(1,dim);
-    for i = 2:2
+    for i = 71:100
 
         [bicCS,costCS,scoreCS,historyCS] = csb(nPop,lamda,miu,omega);
         [bicFA,costFA,scoreFA,historyFA] = fab(nPop,lamda,miu,omega);
@@ -68,7 +69,6 @@ for no_data = 2:2
             end
             % PngFile = fullfile(data_root,)
             % print(gcf,'-dpng',PngFile)
-
         end %end of save
 
     end %end of times
