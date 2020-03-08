@@ -4,7 +4,8 @@ library('Rgraphviz')
 library('pathview')
 library('org.Hs.eg.db')
 
-data.names = c('BCLL', 'RAT', 'YC', 'PBC')
+# data.names = c('BCLL', 'RAT', 'YC', 'PBC')
+data.names = c('RAT', 'YC')
 algs = c('CS', 'FA', 'CSFA', 'PSO', 'QPSO')
 root = './'
 p_th = 0.01
@@ -38,5 +39,4 @@ for (dataN in data.names) {
         out.dir = paste(root, dataN, '/', alg, '_go/', sep='')
         go_csv(csv.name, out.dir)
     }
-break
 }

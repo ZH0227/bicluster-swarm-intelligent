@@ -131,7 +131,7 @@ function new_nest=empty_nests(nest,pa)
     new_nest=nest+stepsize.*K;
     for j=1:size(new_nest,1)
         s=new_nest(j,:);
-      new_nest(j,:)=simplebounds(s);  
+        new_nest(j,:)=simplebounds(s);  
     end
 end 
 % Application of simple constraints

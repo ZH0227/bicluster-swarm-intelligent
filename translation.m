@@ -7,7 +7,6 @@ function submatI = translation(nestI)
         global data data_n
         rInd = find(nestI(1:data_n));
         cInd = find(nestI(data_n+1:size(nestI,2)));
-        subR = data(rInd,:);
-        submatI = subR(:,cInd);
+        submatI = data(rInd,cInd);
     end
     

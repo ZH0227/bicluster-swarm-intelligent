@@ -18,12 +18,6 @@ for i=1:length(datas)
         files = {dirOut.name};
         bic_cnt = fix(length(files) / 4);
 
-        % Genes = ones(bic_cnt,1);
-        % Conditions = ones(bic_cnt,1);
-        % GVS = ones(bic_cnt,1);
-        % CVS = ones(bic_cnt,1);
-        % MSRS = ones(bic_cnt,1);
-        % VarS = ones(bic_cnt,1);
 
         txtFile = [algPath, '.txt'];
         disp(txtFile)
@@ -39,8 +33,6 @@ for i=1:length(datas)
             genes = genes -1;
             conditions = conditions -1;
 
-            % fprintf(fid, ['%s', ',', '%s', ',', '%f', ',', '%d', ',', '%d', ',', '%f','\n'],...
-            % num2str(genes), num2str(conditions), scores(1), scores(3), scores(4),scores(5));
             fprintf(fid, '%f\n',scores(1));
             fprintf(fid, '%d\n',scores(3));
             fprintf(fid, '%d\n',scores(4));

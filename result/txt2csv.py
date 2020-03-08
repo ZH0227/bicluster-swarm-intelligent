@@ -15,7 +15,7 @@ for data in datas:
     else:
         ident_dict[data] = df['IDENTIFIER'].to_numpy()
 
-def txt2csv(file:str):
+def txt2csv(txt:str):
     csvfile = txt.replace('.txt', '.csv')
     items = []
     # read txt
@@ -32,7 +32,6 @@ def txt2csv(file:str):
             genes_str = '+'.join(genes) 
             condis = lines.pop(0).strip()
             items.append([msr, gv, cv, var, genes_str, condis])
-    fid.close()
     #write csv
     df = pd.DataFrame(items)
     df.columns = columns

@@ -4,7 +4,7 @@ saveIf =1;
 global data c2bT Lb Ub data_n dim costFun
 costFun = @calc_fit4;
 c2bT = 0.5;         % decide 0 or 1 threshold
-for no_data = 2:2
+for no_data = 4:4
     if no_data == 1
         dataName = 'BCLL';
         lamda=1*10^4;
@@ -32,7 +32,7 @@ for no_data = 2:2
     dim = data_n + data_m;
     Lb = zeros(1,dim);
     Ub = 1.*ones(1,dim);
-    for i = 71:100
+    for i = 73:79
 
         [bicCS,costCS,scoreCS,historyCS] = csb(nPop,lamda,miu,omega);
         [bicFA,costFA,scoreFA,historyFA] = fab(nPop,lamda,miu,omega);
