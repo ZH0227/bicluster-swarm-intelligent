@@ -7,3 +7,4 @@ RAT
 *.mat
 .Rhistory
 *.pkl
+.ipynb_checkpoints

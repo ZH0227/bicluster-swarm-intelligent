@@ -31,9 +31,9 @@ if __name__ == '__main__':
     datasets = ['BCLL', 'YC', 'PBC', 'RAT']
     algs = ['FA', 'CS', 'CSFA', 'PSO', 'QPSO']
     dataVol = {}
-    dataVol['BCLL'] = 12185*21
     dataVol['YC'] = 5847*50
     dataVol['RAT'] = 7751*122
+    dataVol['BCLL'] = 12185*21
     dataVol['PBC'] = 21225*286
     root = os.getcwd()
 

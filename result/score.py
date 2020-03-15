@@ -110,9 +110,9 @@ if __name__ == "__main__":
         for alg in algs:
             txtfile = os.path.join(dataset, alg+'.txt')
             print(txtfile)
-            hvDict[alg] = processHV(txtfile, alldata_np)
-            riDict[alg] = processRI(txtfile, alldata_np)
-            smsrDict[alg] = processSMSR(txtfile, alldata_np)
+            hvDict[alg+'B'] = processHV(txtfile, alldata_np)
+            riDict[alg+'B'] = processRI(txtfile, alldata_np)
+            smsrDict[alg+'B'] = processSMSR(txtfile, alldata_np)
         hvfile = os.path.join('./', dataset, "hv.csv")
         hv_df = pd.DataFrame(hvDict)
         hv_df.to_csv(hvfile)

@@ -19,12 +19,10 @@ def helper(dataName):
     var_df = pd.DataFrame()
 
     for alg in algs:
-        for met in metrices:
-            eval(met.lower()+'['+alg+']') = eval(alg.lower()+'_df')[met].to_numpy() 
-        # cv_df[alg] = eval(alg.lower()+'_df')['CV'].to_numpy()
-        # gv_df[alg] = eval(alg.lower()+'_df')['GV'].to_numpy()
-        # msr_df[alg] = eval(alg.lower()+'_df')['MSR'].to_numpy()
-        # var_df[alg] = eval(alg.lower()+'_df')['Var'].to_numpy()
+        cv_df[alg+'B'] = eval(alg.lower()+'_df')['CV'].to_numpy()
+        gv_df[alg+'B'] = eval(alg.lower()+'_df')['GV'].to_numpy()
+        msr_df[alg+'B'] = eval(alg.lower()+'_df')['MSR'].to_numpy()
+        var_df[alg+'B'] = eval(alg.lower()+'_df')['Var'].to_numpy()
 
     for met in metrices:
         eval(met.lower()+"_df").to_csv(os.path.join('./',dataName, met.lower()+'.csv'))
